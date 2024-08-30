@@ -24,7 +24,7 @@ const CaptureButton = styled.div`
   border-radius: 50%;
   border: 5px solid #ccc;
   position: absolute;
-  bottom: 10px;
+  bottom: 10%;
 transform: translate(-50%,-50%);
   left: 50%;
   cursor: pointer;
