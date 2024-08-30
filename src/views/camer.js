@@ -3,6 +3,8 @@ import { Alert } from 'reactstrap';
 import { supabase } from '../supabaseClient';
 import { Camera } from 'react-camera-pro';
 import styled from 'styled-components';
+import { FaCameraRotate } from 'react-icons/fa6'; // Import rotate icon
+import { Spinner } from 'reactstrap'; // Import spinner
 
 const CameraContainer = styled.div`
   position: fixed;
@@ -20,89 +22,130 @@ const CameraContainer = styled.div`
 const CaptureButton = styled.div`
   width: 80px;
   height: 80px;
-  background-color: white;
+  background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : 'white')};
   border-radius: 50%;
-  border: 5px solid #ccc;
-  position: absolute;
+  border: 5px solid ${({ isProcessing }) => (isProcessing ? 'red' : '#ccc')};
+  cursor: ${({ isProcessing }) => (isProcessing ? 'default' : 'pointer')};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+   position: absolute;
   bottom: 10%;
-transform: translate(-50%,-50%);
   left: 50%;
-  cursor: pointer;
+  transform:translate(-50%,-50%),
   transition: background-color 0.3s;
 
   &:active {
-    background-color: #ddd;
+    background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : '#ddd')};
+  }
+`;
+
+const RotateButton = styled.div`
+  position: absolute;
+  bottom: 10%;
+  right: 40px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  svg {
+    color: white;
+    font-size: 24px;
   }
 `;
 
 const CodeAlert = styled(Alert)`
   position: absolute;
-  bottom: 50%;
+  bottom: 100px;
   width: 80%;
   left: 10%;
   text-align: center;
 `;
 
 const PhoneCameraUpload = () => {
-    const [code, setCode] = useState('');
-    const [uploadSuccess, setUploadSuccess] = useState(false);
-    const cameraRef = useRef(null);
+  const [code, setCode] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // State for processing indicator
+  const [facingMode, setFacingMode] = useState('environment'); // State for camera orientation
+  const cameraRef = useRef(null);
 
-    const generateCode = useCallback(() => {
-        return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a 4-digit code
-    }, []);
+  const generateCode = useCallback(() => {
+    return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a 4-digit code
+  }, []);
 
-    const handleCapture = useCallback(async () => {
-        if (cameraRef.current) {
-            try {
-                const imageSrc = cameraRef.current.takePhoto();
-                const response = await fetch(imageSrc);
-                const blob = await response.blob();
-                const fileName = `${Date.now()}.jpg`;
-                const uniqueCode = generateCode();
+  const handleCapture = useCallback(async () => {
+    if (cameraRef.current) {
+      setIsProcessing(true); // Set processing state to true
+      try {
+        const imageSrc = cameraRef.current.takePhoto();
+        const response = await fetch(imageSrc);
+        const blob = await response.blob();
+        const fileName = `${Date.now()}.jpg`;
+        const uniqueCode = generateCode();
 
-                const { data, error } = await supabase.storage
-                    .from('product-images')
-                    .upload(fileName, blob, {
-                        cacheControl: '3600',
-                        upsert: false,
-                    });
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-                if (error) throw error;
+        if (error) throw error;
 
-                const { error: dbError } = await supabase
-                    .from('image_codes')
-                    .insert([{ image_name: fileName, code: uniqueCode }]);
+        const { error: dbError } = await supabase
+          .from('image_codes')
+          .insert([{ image_name: fileName, code: uniqueCode }]);
 
-                if (dbError) throw dbError;
+        if (dbError) throw dbError;
 
-                setCode(uniqueCode);
-                setUploadSuccess(true);
-            } catch (error) {
-                console.error('Error uploading image:', error.message);
-                setUploadSuccess(false);
-            }
-        }
-    }, [generateCode]);
+        setCode(uniqueCode);
+        setUploadSuccess(true);
+      } catch (error) {
+        console.error('Error uploading image:', error.message);
+        setUploadSuccess(false);
+      } finally {
+        setIsProcessing(false); // Reset processing state
+      }
+    }
+  }, [generateCode]);
 
-    return (
-        <CameraContainer>
-            <Camera
-                ref={cameraRef}
-                idealFacingMode="environment"
-                style={{ width: '100%', height: '100%' }}
-            />
-            <div className="camera-controls">
-                <CaptureButton onClick={handleCapture} />
-            </div>
+  const handleRotateCamera = useCallback(() => {
+    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+  }, []);
 
-            {uploadSuccess && (
-                <CodeAlert color="success" className="mt-3">
-                    Image uploaded successfully! Your code is <strong>{code}</strong>
-                </CodeAlert>
-            )}
-        </CameraContainer>
-    );
+  return (
+    <CameraContainer>
+      <Camera
+        ref={cameraRef}
+        idealFacingMode={facingMode}
+        style={{ width: '100%', height: '100%' }}
+      />
+      <div className="camera-controls">
+        <CaptureButton onClick={handleCapture} isProcessing={isProcessing}>
+          {isProcessing ? <Spinner size="sm" color="blue" /> : null}
+        </CaptureButton>
+        <RotateButton onClick={handleRotateCamera}>
+          <FaCameraRotate />
+        </RotateButton>
+      </div>
+
+      {uploadSuccess && (
+        <CodeAlert color="success" className="mt-3">
+          Image uploaded successfully! Your code is <strong>{code}</strong>
+        </CodeAlert>
+      )}
+    </CameraContainer>
+  );
 };
 
 export default PhoneCameraUpload;
