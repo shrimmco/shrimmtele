@@ -20,8 +20,8 @@ const CameraContainer = styled.div`
 `;
 
 const CaptureButton = styled.div`
-  height:10%;
-  aspect-ratio:1;
+  height:10vh;
+  aspect-ratio:1/1;
   background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : 'white')};
   border-radius: 50%;
   border: 5px solid ${({ isProcessing }) => (isProcessing ? 'red' : '#ccc')};
@@ -39,11 +39,11 @@ const CaptureButton = styled.div`
 
 const RotateButton = styled.div`
   position: absolute;
-  bottom: 25%;
+  bottom: 20%;
   right: 40px;
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
-  aspect-ratio:1;
+  aspect-ratio:1/1;
   height: 5%;
   display: flex;
   justify-content: center;
