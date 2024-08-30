@@ -136,7 +136,9 @@ const PhoneCameraUpload = () => {
             </div>
 
             {uploadSuccess && (
-                <CodeAlert color="success" className="mt-3">
+                <CodeAlert color="success" className="mt-3" onClick={()=>{
+                    setUploadSuccess(false);
+                }}>
                     Image uploaded successfully! Your code is <strong>{code}</strong>
                 </CodeAlert>
             )}
