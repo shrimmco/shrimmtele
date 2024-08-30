@@ -128,7 +128,7 @@ const PhoneCameraUpload = () => {
     <CameraContainer>
       <Camera
         ref={cameraRef}
-        idealFacingMode={facingMode}
+        facingMode={facingMode}
         style={{ width: '100%', height: '100%' }}
       />
       <div className="camera-controls">
