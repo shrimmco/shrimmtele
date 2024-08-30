@@ -121,7 +121,7 @@ const PhoneCameraUpload = () => {
   }, [generateCode]);
 
   const handleRotateCamera = useCallback(() => {
-    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+    setFacingMode((facingMode) => (facingMode === 'environment' ? 'user' : 'environment'));
   }, []);
 
   return (
