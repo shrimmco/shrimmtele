@@ -133,9 +133,6 @@ const PhoneCameraUpload = () => {
                 <CaptureButton onClick={handleCapture} isProcessing={isProcessing}>
                     {isProcessing ? <Spinner size="sm" color="blue" /> : null}
                 </CaptureButton>
-                <RotateButton onClick={handleRotateCamera}>
-                    <FaCameraRotate />
-                </RotateButton>
             </div>
 
             {uploadSuccess && (
