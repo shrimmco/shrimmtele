@@ -27,7 +27,7 @@ const CaptureButton = styled.div`
   border: 5px solid ${({ isProcessing }) => (isProcessing ? 'red' : '#ccc')};
   cursor: ${({ isProcessing }) => (isProcessing ? 'default' : 'pointer')};
    position: absolute;
-  bottom: 10%;
+  bottom: 15%;
   left: 50%;
   transform:translate(-50%,-50%);
   transition: background-color 0.3s;
@@ -39,7 +39,7 @@ const CaptureButton = styled.div`
 
 const RotateButton = styled.div`
   position: absolute;
-  bottom: 15%;
+  bottom: 25%;
   right: 40px;
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: 50%;
