@@ -6,39 +6,38 @@ import '../assets/css/camera.css'; // Import custom styles
 const PhoneCameraUpload = () => {
   const [code, setCode] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
   useEffect(() => {
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        streamRef.current = stream;
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.play();
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
 
-        video.onloadedmetadata = () => {
+        // Continuously draw the video frame on the canvas
+        const drawFrame = () => {
           const canvas = canvasRef.current;
           const context = canvas.getContext('2d');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-
-          const drawFrame = () => {
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            requestAnimationFrame(drawFrame);
-          };
-          drawFrame();
+          context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(drawFrame); // Keep drawing frames
         };
+
+        drawFrame(); // Start drawing frames
       } catch (error) {
         console.error('Error accessing camera:', error);
       }
     };
+
     initCamera();
 
+    // Stop the stream when the component unmounts
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop());
       }
     };
   }, []);
