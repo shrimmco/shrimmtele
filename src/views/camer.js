@@ -20,7 +20,8 @@ const CameraContainer = styled.div`
 `;
 
 const CaptureButton = styled.div`
-  height:10vh;
+  height:25px;
+  width:25px;
   aspect-ratio:1/1;
   background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : 'white')};
   border-radius: 50%;
