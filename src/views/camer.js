@@ -23,7 +23,7 @@ const CaptureButton = styled.div`
   height:50px;
   width:50px;
   background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : 'white')};
-  border-radius: 100%;
+  border-radius: 50%;
   border: 5px solid ${({ isProcessing }) => (isProcessing ? 'red' : '#ccc')};
   cursor: ${({ isProcessing }) => (isProcessing ? 'default' : 'pointer')};
    position: absolute;
