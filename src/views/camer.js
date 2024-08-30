@@ -1,98 +1,108 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Alert } from 'reactstrap';
 import { supabase } from '../supabaseClient';
-import '../assets/css/camera.css'; // Import custom styles
+import { Camera } from 'react-camera-pro';
+import styled from 'styled-components';
+
+const CameraContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  overflow: hidden;
+`;
+
+const CaptureButton = styled.div`
+  width: 80px;
+  height: 80px;
+  background-color: white;
+  border-radius: 50%;
+  border: 5px solid #ccc;
+  position: absolute;
+  bottom: 10px;
+transform: translate(-50%,-50%);
+  left: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:active {
+    background-color: #ddd;
+  }
+`;
+
+const CodeAlert = styled(Alert)`
+  position: absolute;
+  bottom: 50%;
+  width: 80%;
+  left: 10%;
+  text-align: center;
+`;
 
 const PhoneCameraUpload = () => {
-  const [code, setCode] = useState('');
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+    const [code, setCode] = useState('');
+    const [uploadSuccess, setUploadSuccess] = useState(false);
+    const cameraRef = useRef(null);
 
-  useEffect(() => {
-    const initCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+    const generateCode = useCallback(() => {
+        return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a 4-digit code
+    }, []);
 
-        // Continuously draw the video frame on the canvas
-        const drawFrame = () => {
-          const canvas = canvasRef.current;
-          const context = canvas.getContext('2d');
-          context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          requestAnimationFrame(drawFrame); // Keep drawing frames
-        };
+    const handleCapture = useCallback(async () => {
+        if (cameraRef.current) {
+            try {
+                const imageSrc = cameraRef.current.takePhoto();
+                const response = await fetch(imageSrc);
+                const blob = await response.blob();
+                const fileName = `${Date.now()}.jpg`;
+                const uniqueCode = generateCode();
 
-        drawFrame(); // Start drawing frames
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-      }
-    };
+                const { data, error } = await supabase.storage
+                    .from('product-images')
+                    .upload(fileName, blob, {
+                        cacheControl: '3600',
+                        upsert: false,
+                    });
 
-    initCamera();
+                if (error) throw error;
 
-    // Stop the stream when the component unmounts
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
+                const { error: dbError } = await supabase
+                    .from('image_codes')
+                    .insert([{ image_name: fileName, code: uniqueCode }]);
 
-  const generateCode = () => {
-    return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a 4-digit code
-  };
+                if (dbError) throw dbError;
 
-  const handleCapture = async () => {
-    const canvas = canvasRef.current;
-    const dataUrl = canvas.toDataURL('image/jpeg');
-    const blob = await (await fetch(dataUrl)).blob();
-    const fileName = `${Date.now()}.jpg`;
-    const uniqueCode = generateCode();
+                setCode(uniqueCode);
+                setUploadSuccess(true);
+            } catch (error) {
+                console.error('Error uploading image:', error.message);
+                setUploadSuccess(false);
+            }
+        }
+    }, [generateCode]);
 
-    try {
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, blob, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+    return (
+        <CameraContainer>
+            <Camera
+                ref={cameraRef}
+                idealFacingMode="environment"
+                style={{ width: '100%', height: '100%' }}
+            />
+            <div className="camera-controls">
+                <CaptureButton onClick={handleCapture} />
+            </div>
 
-      if (error) throw error;
-
-      // Save the code and image name in a separate database table
-      const { error: dbError } = await supabase
-        .from('image_codes')
-        .insert([{ image_name: fileName, code: uniqueCode }]);
-
-      if (dbError) throw dbError;
-
-      setCode(uniqueCode);
-      setUploadSuccess(true);
-    } catch (error) {
-      console.error('Error uploading image:', error.message);
-      setUploadSuccess(false);
-    }
-  };
-
-  return (
-    <div className="camera-container">
-      <canvas ref={canvasRef} className="camera-canvas"></canvas>
-
-      <div className="camera-controls">
-        <div className="capture-button" onClick={handleCapture}></div>
-      </div>
-
-      {uploadSuccess && (
-        <Alert color="success" className="mt-3 code-alert">
-          Image uploaded successfully! Your code is <strong>{code}</strong>
-        </Alert>
-      )}
-    </div>
-  );
+            {uploadSuccess && (
+                <CodeAlert color="success" className="mt-3">
+                    Image uploaded successfully! Your code is <strong>{code}</strong>
+                </CodeAlert>
+            )}
+        </CameraContainer>
+    );
 };
 
 export default PhoneCameraUpload;
