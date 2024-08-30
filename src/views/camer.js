@@ -22,9 +22,8 @@ const CameraContainer = styled.div`
 const CaptureButton = styled.div`
   height:25px;
   width:25px;
-  aspect-ratio:1/1;
   background-color: ${({ isProcessing }) => (isProcessing ? '#ddd' : 'white')};
-  border-radius: 50%;
+  border-radius: 100%;
   border: 5px solid ${({ isProcessing }) => (isProcessing ? 'red' : '#ccc')};
   cursor: ${({ isProcessing }) => (isProcessing ? 'default' : 'pointer')};
    position: absolute;
