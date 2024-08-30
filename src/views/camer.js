@@ -1,24 +1,46 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Container, Alert } from 'reactstrap';
+import { Alert } from 'reactstrap';
 import { supabase } from '../supabaseClient';
 import '../assets/css/camera.css'; // Import custom styles
 
 const PhoneCameraUpload = () => {
   const [code, setCode] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
   useEffect(() => {
     const initCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+
+        video.onloadedmetadata = () => {
+          const canvas = canvasRef.current;
+          const context = canvas.getContext('2d');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          const drawFrame = () => {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(drawFrame);
+          };
+          drawFrame();
+        };
       } catch (error) {
         console.error('Error accessing camera:', error);
       }
     };
     initCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
   const generateCode = () => {
@@ -26,9 +48,8 @@ const PhoneCameraUpload = () => {
   };
 
   const handleCapture = async () => {
-    const context = canvasRef.current.getContext('2d');
-    context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-    const dataUrl = canvasRef.current.toDataURL('image/jpeg');
+    const canvas = canvasRef.current;
+    const dataUrl = canvas.toDataURL('image/jpeg');
     const blob = await (await fetch(dataUrl)).blob();
     const fileName = `${Date.now()}.jpg`;
     const uniqueCode = generateCode();
@@ -60,8 +81,7 @@ const PhoneCameraUpload = () => {
 
   return (
     <div className="camera-container">
-      <video ref={videoRef} autoPlay className="camera-view" />
-      <canvas ref={canvasRef} style={{ display: 'none' }} width="640" height="480" />
+      <canvas ref={canvasRef} className="camera-canvas"></canvas>
 
       <div className="camera-controls">
         <div className="capture-button" onClick={handleCapture}></div>
