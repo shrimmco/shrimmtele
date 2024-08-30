@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Alert } from 'reactstrap';
 import { supabase } from '../supabaseClient';
 import { Camera } from 'react-camera-pro';
@@ -82,6 +82,7 @@ const PhoneCameraUpload = () => {
   const generateCode = useCallback(() => {
     return Math.floor(1000 + Math.random() * 9000).toString(); // Generates a 4-digit code
   }, []);
+  useEffect(()=>{},[facingMode])
 
   const handleCapture = useCallback(async () => {
     if (cameraRef.current) {
