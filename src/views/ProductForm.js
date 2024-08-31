@@ -166,9 +166,13 @@ function ProductForm() {
                         required
                       >
                         <option value="">Select Category</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Accessories">Accessories</option>
+                        <option value="Ring">Ring</option>
+                        <option value="Bracelet">Bracelet</option>
+                        <option value="Necklace">Necklace</option>
+                        <option value="Earring">Earring</option>
+                        <option value="Set">Set</option>
+                        <option value="Anklet">Anklet</option>
+
                       </Input>
                     </FormGroup>
                   </Col>
