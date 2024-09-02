@@ -28,6 +28,9 @@ function EditProductPage() {
         description: '',
         discount: '',
         uniqueCode: '',
+        collectionName: '', // New field
+        weight: '',         // New field
+        material: '',       // New field
     });
     const [existingPhotoUrl, setExistingPhotoUrl] = useState('');
     const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -55,6 +58,9 @@ function EditProductPage() {
                 description: data.description,
                 discount: data.discount,
                 uniqueCode: data.unique_code || '',
+                collectionName: data.collection_name || '', // Set the collection name
+                weight: data.weight || '',                 // Set the weight
+                material: data.material || '',             // Set the material
             });
 
             // Fetch existing photo URL if it exists
@@ -101,7 +107,10 @@ function EditProductPage() {
                 stock_photo: stockPhotoUrl || formValues.stockPhoto,
                 description: formValues.description,
                 discount: formValues.discount,
-                unique_code: formValues.uniqueCode, // Update the unique code
+                unique_code: formValues.uniqueCode,
+                collection_name: formValues.collectionName, // Update collection name
+                weight: formValues.weight,                 // Update weight
+                material: formValues.material,             // Update material
             }).eq('id', id);
 
             if (error) throw error;
@@ -196,14 +205,11 @@ function EditProductPage() {
                                 <Row>
                                     <Col md="12">
                                         <FormGroup >
-                                            <label style={{cursor:"pointer"}}>Upload Stock Photo <FaUpload></FaUpload></label>
+                                            <label style={{cursor:"pointer"}}>Upload Stock Photo <FaUpload /></label>
                                             <Input style={{cursor:"pointer"}} type="file" onChange={handleFileChange} />
-
-
-                                            
                                         </FormGroup>
                                         <FormGroup>
-                                        <label> Or Unique Photo Code</label>
+                                            <label> Or Unique Photo Code</label>
                                             <Input
                                                 placeholder="Enter unique code"
                                                 type="text"
@@ -212,7 +218,46 @@ function EditProductPage() {
                                                 onChange={handleChange}
                                             />
                                         </FormGroup>
-
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col md="6">
+                                        <FormGroup>
+                                            <label>Collection Name</label>
+                                            <Input
+                                                placeholder="Enter collection name"
+                                                type="text"
+                                                name="collectionName"
+                                                value={formValues.collectionName}
+                                                onChange={handleChange}
+                                            />
+                                        </FormGroup>
+                                    </Col>
+                                    <Col md="6">
+                                        <FormGroup>
+                                            <label>Weight (g)</label>
+                                            <Input
+                                                placeholder="Enter weight in grams"
+                                                type="number"
+                                                name="weight"
+                                                value={formValues.weight}
+                                                onChange={handleChange}
+                                            />
+                                        </FormGroup>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col md="12">
+                                        <FormGroup>
+                                            <label>Material</label>
+                                            <Input
+                                                placeholder="Enter material"
+                                                type="text"
+                                                name="material"
+                                                value={formValues.material}
+                                                onChange={handleChange}
+                                            />
+                                        </FormGroup>
                                     </Col>
                                 </Row>
                                 <Row>

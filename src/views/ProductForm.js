@@ -19,10 +19,14 @@ function ProductForm() {
     price: '',
     size: '',
     category: '',
+    collection_name: '', // New field for Collection Name
+    weight: '',          // New field for Weight
+    material: '',        // New field for Material
     stockPhoto: null,
-    stockPhotoCode: '',  // New field for the 4-digit code
+    stockPhotoCode: '',
     description: '',
     discount: '',
+    hsn: '',
   });
 
   const handleChange = (event) => {
@@ -34,13 +38,37 @@ function ProductForm() {
     setFormValues({ ...formValues, stockPhoto: event.target.files[0] });
   };
 
+  const generateHSNCode = async () => {
+    try {
+      let hsnCode;
+      let isUnique = false;
+
+      while (!isUnique) {
+        hsnCode = Math.floor(10000000 + Math.random() * 90000000).toString();
+        const { data, error } = await supabase
+          .from('products')
+          .select('hsn')
+          .eq('hsn', hsnCode)
+          .single();
+
+        if (error) {
+          isUnique = true;
+        }
+      }
+
+      setFormValues({ ...formValues, hsn: hsnCode });
+    } catch (error) {
+      console.error('Error generating HSN code:', error.message);
+      alert('Error generating HSN code: ' + error.message);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
       let stockPhotoUrl = '';
 
-      // If a code is provided, fetch the image name from the database
       if (formValues.stockPhotoCode) {
         const { data, error } = await supabase
           .from('image_codes')
@@ -53,7 +81,6 @@ function ProductForm() {
         stockPhotoUrl = data.image_name;
       }
 
-      // If a file is uploaded, use that instead of the code
       if (formValues.stockPhoto) {
         const { data, error } = await supabase.storage
           .from('product-images')
@@ -71,16 +98,29 @@ function ProductForm() {
         stockPhotoUrl = data.path;
       }
 
-      // Insert the new product with the correct image URL
+      const { data: hsnData, error: hsnError } = await supabase
+        .from('products')
+        .select('hsn')
+        .eq('hsn', formValues.hsn)
+        .single();
+
+      if (hsnData) {
+        throw new Error('HSN code already exists. Please enter a unique HSN code.');
+      }
+
       const { error } = await supabase.from('products').insert([
         {
           name: formValues.name,
           price: formValues.price,
           size: formValues.size,
           category: formValues.category,
+          collection_name: formValues.collection_name, // Save Collection Name
+          weight: formValues.weight,                   // Save Weight
+          material: formValues.material,               // Save Material
           stock_photo: stockPhotoUrl,
           description: formValues.description,
           discount: formValues.discount,
+          hsn: formValues.hsn,
         },
       ]);
 
@@ -92,10 +132,14 @@ function ProductForm() {
         price: '',
         size: '',
         category: '',
+        collection_name: '',
+        weight: '',
+        material: '',
         stockPhoto: null,
-        stockPhotoCode: '',  // Reset the code input
+        stockPhotoCode: '',
         description: '',
         discount: '',
+        hsn: '',
       });
     } catch (error) {
       console.error('Error adding product:', error.message);
@@ -172,12 +216,49 @@ function ProductForm() {
                         <option value="Earring">Earring</option>
                         <option value="Set">Set</option>
                         <option value="Anklet">Anklet</option>
-
                       </Input>
                     </FormGroup>
                   </Col>
                 </Row>
                 <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Collection Name</label>
+                      <Input
+                        placeholder="Enter collection name"
+                        type="text"
+                        name="collection_name"
+                        value={formValues.collection_name}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Weight (g)</label>
+                      <Input
+                        placeholder="Enter weight in grams"
+                        type="number"
+                        name="weight"
+                        value={formValues.weight}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Material</label>
+                      <Input
+                        placeholder="Enter material"
+                        type="text"
+                        name="material"
+                        value={formValues.material}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
                   <Col md="6">
                     <FormGroup>
                       <label>Stock Photo Code</label>
@@ -190,11 +271,32 @@ function ProductForm() {
                       />
                     </FormGroup>
                   </Col>
+                </Row>
+                <Row>
                   <Col md="6">
                     <FormGroup>
                       <label>Or Upload Stock Photo</label>
                       <Input type="file" onChange={handleFileChange} />
                     </FormGroup>
+                  </Col>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>HSN Code</label>
+                      <Input
+                        placeholder="Enter or generate HSN code"
+                        type="text"
+                        name="hsn"
+                        value={formValues.hsn}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                    <Button
+                      color="primary"
+                      onClick={generateHSNCode}
+                      style={{ marginTop: '30px' }}
+                    >
+                      Generate HSN Code
+                    </Button>
                   </Col>
                 </Row>
                 <Row>
