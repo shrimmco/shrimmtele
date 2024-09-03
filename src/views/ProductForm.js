@@ -217,6 +217,8 @@ function ProductForm() {
                         <option value="Set">Set</option>
                         <option value="Anklet">Anklet</option>
                         <option value="Chains">Chains</option>
+                        <option value="Bangles">Bangles</option>
+
                       </Input>
                     </FormGroup>
                   </Col>
