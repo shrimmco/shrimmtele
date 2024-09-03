@@ -219,6 +219,7 @@ function ProductForm() {
                         <option value="Chains">Chains</option>
                         <option value="Bangles">Bangles</option>
                         <option value="Trinkets">Trinkets</option>
+                        <option value="Studs">Studs</option>
 
 
                       </Input>
