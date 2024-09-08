@@ -221,6 +221,8 @@ function ProductForm() {
                         <option value="Trinkets">Trinkets</option>
                         <option value="Studs">Studs</option>
                         <option value="Pendant">Pendant</option>
+                        <option value="Hoops">Hoops</option>
+
                       </Input>
                     </FormGroup>
                   </Col>
