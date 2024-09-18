@@ -1,25 +1,27 @@
-// src/pages/ProductList.js
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button,
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
-  Table,
-  Row,
-  Col,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
 } from 'reactstrap';
 import { supabase } from '../supabaseClient';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  TextField,
+  Pagination,
+  IconButton,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -30,33 +32,48 @@ const ProductList = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage]);
+  }, [currentPage, searchTerm]);
 
   const fetchProducts = async () => {
     try {
-      const { count, data, error } = await supabase
-        .from('products')
-        .select('*', { count: 'exact' })
-        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
-
+      let query = supabase.from('products').select('*');
+  
+      if (searchTerm) {
+        // Search in text fields
+        query = query.or(
+          `name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,collection_name.ilike.%${searchTerm}%,hsn.ilike.%${searchTerm}%`
+        );
+      }
+  
+      // Fetch all data without pagination for full search
+      const { data, error } = await query;
+  
       if (error) {
         console.error('Error fetching products:', error.message);
-      } else {
-        setProducts(data);
-        setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+        return;
       }
+  
+      // Apply manual filtering for `hsn` if needed
+      const filteredProducts =  data;
+  
+      // Implement client-side pagination
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  
+      setProducts(paginatedProducts);
+      setTotalPages(Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
     } catch (error) {
       console.error('Error fetching products:', error.message);
     }
   };
-
-  const handlePageChange = (page) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
+  
+  
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
   };
 
   const handleDelete = async () => {
@@ -79,92 +96,100 @@ const ProductList = () => {
 
   return (
     <div className="content">
-      <Row>
-        <Col md="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h4">Product List</CardTitle>
-            </CardHeader>
-            <CardBody>
-              <Table className="tablesorter" responsive>
-                <thead className="text-primary">
-                  <tr>
-                  <th>hsn</th>
+      {/* Search Bar */}
+      <TextField
+        label="Search by HSN, Name, Collection, Category"
+        variant="outlined"
+        fullWidth
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+        InputProps={{
+          style: { backgroundColor: 'black', color: 'white' },
+        }}
+        InputLabelProps={{
+          style: { color: 'white' },
+        }}
+        style={{ marginBottom: '20px' }}
+      />
 
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Size</th>
-                    <th>Category</th>
-                    <th>Collection</th>
+      {/* Table */}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>HSN</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Size</TableCell>
+              <TableCell>Category</TableCell>
+              <TableCell>Collection</TableCell>
+              <TableCell>Stock Photo</TableCell>
+              <TableCell align="center">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell>{product.hsn}</TableCell>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>{product.price}{"/-"}</TableCell>
+                <TableCell>{product.size}</TableCell>
+                <TableCell>{product.category}</TableCell>
+                <TableCell>{product.collection_name}</TableCell>
+                <TableCell>
+                  {product.stock_photo ? (
+                    <img
+                      src={`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`}
+                      alt={product.name}
+                      style={{ width: '50px', height: '50px', objectFit: 'contain', cursor: 'pointer' }}
+                      onClick={() => handleImageClick(`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`)}
+                    />
+                  ) : (
+                    'No Image'
+                  )}
+                </TableCell>
+                <TableCell align="center">
+                  <Link to={`/admin/edit-product/${product.id}`}>
+                    <IconButton color="warning">
+                      <EditIcon />
+                    </IconButton>
+                  </Link>
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      setProductToDelete(product);
+                      setOpenDeleteModal(true);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-                    
-                    <th>Stock Photo</th>
-                    <th className="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id}>
-                      <td>{product.hsn}</td>
-
-                      <td>{product.name}</td>
-                      <td>{product.price}{"/-"}</td>
-                      <td>{product.size}</td>
-                      <td>{product.category}</td>
-                      <td>{product.collection_name}</td>
-
-                    
-                      <td>
-                        {product.stock_photo ? (
-                          <img
-                            src={`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`}
-                            alt={product.name}
-                            style={{ width: '50px', height: '50px', objectFit: 'contain', cursor: 'pointer' }}
-                            onClick={() => handleImageClick(`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`)}
-                          />
-                        ) : (
-                          'No Image'
-                        )}
-                      </td>
-                      <td className="text-center">
-                        <Link to={`/admin/edit-product/${product.id}`}>
-                          <Button color="warning" className="btn-sm">Edit</Button>
-                        </Link>
-                        <Button
-                          color="danger"
-                          className="btn-sm"
-                          onClick={() => {
-                            setProductToDelete(product);
-                            setOpenDeleteModal(true);
-                          }}
-                          style={{ marginLeft: '10px' }}
-                        >
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-              <Pagination>
-                <PaginationItem disabled={currentPage === 1}>
-                  <PaginationLink previous onClick={() => handlePageChange(currentPage - 1)} />
-                </PaginationItem>
-                {[...Array(totalPages).keys()].map((number) => (
-                  <PaginationItem key={number + 1} active={number + 1 === currentPage}>
-                    <PaginationLink onClick={() => handlePageChange(number + 1)}>
-                      {number + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem disabled={currentPage === totalPages}>
-                  <PaginationLink next onClick={() => handlePageChange(currentPage + 1)} />
-                </PaginationItem>
-              </Pagination>
-            </CardBody>
-          </Card>
-        </Col>
-      </Row>
+      {/* Pagination */}
+      {!searchTerm && (
+        <Pagination
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+          sx={{
+            '& .MuiPaginationItem-root': {
+              color: 'white',
+              backgroundColor: 'black',
+              '&.Mui-selected': {
+                backgroundColor: 'gray',
+                color: 'white',
+              },
+            },
+          }}
+          style={{ marginTop: '20px', justifyContent: 'center', display: 'flex' }}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={openDeleteModal} toggle={() => setOpenDeleteModal(false)}>
