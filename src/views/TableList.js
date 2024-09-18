@@ -89,12 +89,15 @@ const ProductList = () => {
               <Table className="tablesorter" responsive>
                 <thead className="text-primary">
                   <tr>
+                  <th>hsn</th>
+
                     <th>Name</th>
                     <th>Price</th>
                     <th>Size</th>
                     <th>Category</th>
-                    <th>Description</th>
-                    <th>Discount</th>
+                    <th>Collection</th>
+
+                    
                     <th>Stock Photo</th>
                     <th className="text-center">Actions</th>
                   </tr>
@@ -102,12 +105,15 @@ const ProductList = () => {
                 <tbody>
                   {products.map((product) => (
                     <tr key={product.id}>
+                      <td>{product.hsn}</td>
+
                       <td>{product.name}</td>
                       <td>{product.price}{"/-"}</td>
                       <td>{product.size}</td>
                       <td>{product.category}</td>
-                      <td>{product.description}</td>
-                      <td>{product.discount}%</td>
+                      <td>{product.collection_name}</td>
+
+                    
                       <td>
                         {product.stock_photo ? (
                           <img
