@@ -22,6 +22,8 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -58,19 +60,19 @@ const ProductList = () => {
       }
   
       // Apply manual filtering for `hsn` if needed
-      const filteredProducts =  data;
+      const filteredProducts = data;
   
       // Implement client-side pagination
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   
       setProducts(paginatedProducts);
+      console.log(paginatedProducts)
       setTotalPages(Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
     } catch (error) {
       console.error('Error fetching products:', error.message);
     }
   };
-  
   
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
@@ -92,6 +94,25 @@ const ProductList = () => {
 
   const handleImageClick = (url) => {
     setImageModal({ isOpen: true, imageUrl: url });
+  };
+
+  const toggleSelectForCounter = async (product) => {
+    try {
+      const updatedValue = !product.slct_for_counter;
+      const { error } = await supabase
+        .from('products')
+        .update({ slct_for_counter: updatedValue })
+        .eq('id', product.id);
+      
+      if (error) {
+        console.error('Error updating product:', error.message);
+        return;
+      }
+      
+      fetchProducts(); // Refresh the product list to reflect changes
+    } catch (error) {
+      console.error('Error updating product:', error.message);
+    }
   };
 
   return (
@@ -125,6 +146,7 @@ const ProductList = () => {
               <TableCell>Collection</TableCell>
               <TableCell>Stock Photo</TableCell>
               <TableCell align="center">Actions</TableCell>
+              <TableCell align="center">Select for Counter</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -162,6 +184,15 @@ const ProductList = () => {
                     }}
                   >
                     <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+                <TableCell align="center">
+                  <IconButton onClick={() => toggleSelectForCounter(product)}>
+                    {product.slct_for_counter ? (
+                      <FavoriteIcon color='red' style={{ color: 'red' }} />
+                    ) : (
+                      <FavoriteBorderIcon style={{ color: 'black' }} />
+                    )}
                   </IconButton>
                 </TableCell>
               </TableRow>
