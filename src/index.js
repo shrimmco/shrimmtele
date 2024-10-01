@@ -10,17 +10,18 @@ import "assets/scss/black-dashboard-react.scss";
 import "assets/demo/demo.css";
 import "assets/css/nucleo-icons.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-
+import 'react-toastify/dist/ReactToastify.css';
 import ThemeContextWrapper from "./components/ThemeWrapper/ThemeWrapper";
 import BackgroundColorWrapper from "./components/BackgroundColorWrapper/BackgroundColorWrapper";
 import PhoneCameraUpload from "views/camer";
-
+import { ToastContainer } from 'react-toastify';
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <ThemeContextWrapper>
     <BackgroundColorWrapper>
       <BrowserRouter>
+      <ToastContainer />
         <Routes>
           <Route path="/admin/*" element={<AdminLayout />} />
           <Route path="/admin/edit-product/:id" element={<EditProductPage/>} exact/>
@@ -31,6 +32,7 @@ root.render(
             element={<Navigate to="/admin/dashboard" replace />}
           />
         </Routes>
+       
       </BrowserRouter>
     </BackgroundColorWrapper>
   </ThemeContextWrapper>

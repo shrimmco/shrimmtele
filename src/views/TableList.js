@@ -35,6 +35,7 @@ const ProductList = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [totalCounterPrice, setTotalCounterPrice] = useState(0); // New state to store total price for selected products
 
   useEffect(() => {
     fetchProducts();
@@ -42,38 +43,39 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      let query = supabase.from('products').select('*');
-  
+      let query = supabase
+        .from('products')
+        .select('*')
+        .order('hsn', { ascending: true }); // Ordering by HSN
+
       if (searchTerm) {
-        // Search in text fields
         query = query.or(
           `name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,collection_name.ilike.%${searchTerm}%,hsn.ilike.%${searchTerm}%`
         );
       }
-  
-      // Fetch all data without pagination for full search
+
       const { data, error } = await query;
-  
       if (error) {
         console.error('Error fetching products:', error.message);
         return;
       }
-  
-      // Apply manual filtering for `hsn` if needed
-      const filteredProducts = data;
-  
-      // Implement client-side pagination
+
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  
+      const paginatedProducts = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+      // Calculate total price of products selected for the counter
+      const totalPrice = data
+        .filter((product) => product.slct_for_counter) // Filter products selected for the counter
+        .reduce((acc, product) => acc + product.price, 0); // Sum the prices
+
       setProducts(paginatedProducts);
-      console.log(paginatedProducts)
-      setTotalPages(Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+      setTotalPages(Math.ceil(data.length / ITEMS_PER_PAGE));
+      setTotalCounterPrice(totalPrice); // Set the total counter price
     } catch (error) {
       console.error('Error fetching products:', error.message);
     }
   };
-  
+
   const handlePageChange = (event, page) => {
     setCurrentPage(page);
   };
@@ -81,7 +83,10 @@ const ProductList = () => {
   const handleDelete = async () => {
     setOpenDeleteModal(false);
     try {
-      const { error } = await supabase.from('products').delete().eq('id', productToDelete.id);
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productToDelete.id);
       if (error) {
         console.error('Error deleting product:', error.message);
       } else {
@@ -108,7 +113,7 @@ const ProductList = () => {
         console.error('Error updating product:', error.message);
         return;
       }
-      
+
       fetchProducts(); // Refresh the product list to reflect changes
     } catch (error) {
       console.error('Error updating product:', error.message);
@@ -160,12 +165,10 @@ const ProductList = () => {
                 <TableCell>{product.collection_name}</TableCell>
                 <TableCell>
                   {product.stock_photo ? (
-                    <img
-                      src={`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`}
-                      alt={product.name}
+                    <span
                       style={{ width: '50px', height: '50px', objectFit: 'contain', cursor: 'pointer' }}
                       onClick={() => handleImageClick(`${process.env.REACT_APP_SUPA_URL}/storage/v1/object/public/product-images/${product.stock_photo}`)}
-                    />
+                    >View</span>
                   ) : (
                     'No Image'
                   )}
@@ -221,6 +224,11 @@ const ProductList = () => {
           style={{ marginTop: '20px', justifyContent: 'center', display: 'flex' }}
         />
       )}
+
+      {/* Display total price for selected products */}
+      <div style={{ marginTop: '20px', fontWeight: 'bold', color: 'white' }}>
+        Total Price of Selected Products for Counter: ₹{totalCounterPrice}/-
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={openDeleteModal} toggle={() => setOpenDeleteModal(false)}>

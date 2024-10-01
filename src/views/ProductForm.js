@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -12,22 +12,104 @@ import {
   Col,
 } from 'reactstrap';
 import { supabase } from '../supabaseClient';
-
+import { toast } from 'react-toastify';
+import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
+import fontkit from '@pdf-lib/fontkit';
 function ProductForm() {
   const [formValues, setFormValues] = useState({
     name: '',
     price: '',
     size: '',
     category: '',
-    collection_name: '', // New field for Collection Name
-    weight: '',          // New field for Weight
-    material: '',        // New field for Material
+    collection_name: '', // Collection Name
+    weight: '',          // Weight
+    material: '',        // Material
     stockPhoto: null,
     stockPhotoCode: '',
     description: '',
     discount: '',
     hsn: '',
+    diamond_weight: '',  // New field for Diamond Weight
   });
+  const iframeRef = useRef(null);
+
+  const printLabel = async () => {
+    const { name, price, weight, hsn, diamond_weight } = formValues;
+
+    // Check required fields
+    if (name === '' || price === '' || weight === '' || hsn === '') {
+      toast('Please enter Name, Price, Weight, and HSN code.');
+      return;
+    }
+
+    try {
+      // Fetch the PDF from Supabase
+      const { data, error } = await supabase.storage
+        .from('labelpdf')
+        .download(`labelfinal.pdf`);
+
+      if (error) {
+        throw new Error('Error fetching the PDF from Supabase: ' + error.message);
+      }
+
+      const { data: fontData, error: fontError } = await supabase.storage
+        .from('labelpdf')
+        .download('cpb.ttf');
+
+      if (fontError) {
+        throw new Error('Error fetching the font from Supabase: ' + fontError.message);
+      }
+
+      // Load the existing PDF into pdf-lib
+      const pdfBytes = await data.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      pdfDoc.registerFontkit(fontkit);
+
+      // Load the bold font
+      const fontBytes = await fontData.arrayBuffer();
+      const boldFont = await pdfDoc.embedFont(fontBytes);
+
+      // Get the first page of the PDF to modify
+      const page = pdfDoc.getPages()[0];
+
+      // Define the font size and color for the text
+      const fontSize = 12;
+      const color = rgb(0, 0, 0); // Black text
+      const getTextWidth = (text, fs, mul) => {
+        return text.length * (fs * mul);
+      };
+
+      // Add text to the PDF at specific positions
+      page.drawText(`${name}`, { x: 4, y: 33, size: 6, color, font: boldFont });
+      page.drawText(`MRP:${price}/-`, { x: 90 - getTextWidth(`MRP: ${price}/-`, 6, 0.6), y: 26, size: 6, color, font: boldFont });
+      page.drawText(`N.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
+      page.drawText(`T.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
+      page.drawText(`#${hsn}`, { x: 90 - getTextWidth(`#${hsn}`, 8, 0.7), y: 14, size: 8, color, font: boldFont });
+
+      if (diamond_weight !== '') {
+        page.drawText(`Dia.wt:${diamond_weight}ct`, { x: 4, y: 14, size: 5, color, font: boldFont });
+      }
+
+      // Save the modified PDF
+      const modifiedPdfBytes = await pdfDoc.save();
+
+      // Create a Blob URL for the modified PDF
+      const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+      const pdfBlobUrl = URL.createObjectURL(modifiedPdfBlob);
+
+      // Set the iframe source to the Blob URL
+      iframeRef.current.src = pdfBlobUrl;
+
+      // Wait for the iframe to load and then trigger print
+      iframeRef.current.onload = () => {
+        iframeRef.current.contentWindow.print(); // Trigger the print dialog
+      };
+
+    } catch (error) {
+      console.error('Error fetching or printing the PDF:', error.message);
+      toast.error('Error fetching or printing the PDF: ' + error.message);
+    }
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -38,6 +120,8 @@ function ProductForm() {
     setFormValues({ ...formValues, stockPhoto: event.target.files[0] });
   };
 
+
+ 
   const generateHSNCode = async () => {
     try {
       let hsnCode;
@@ -114,13 +198,14 @@ function ProductForm() {
           price: formValues.price,
           size: formValues.size,
           category: formValues.category,
-          collection_name: formValues.collection_name, // Save Collection Name
-          weight: formValues.weight,                   // Save Weight
-          material: formValues.material,               // Save Material
+          collection_name: formValues.collection_name,
+          weight: formValues.weight,
+          material: formValues.material,
           stock_photo: stockPhotoUrl,
           description: formValues.description,
           discount: formValues.discount,
           hsn: formValues.hsn,
+          diamond_weight: formValues.diamond_weight, // Added Diamond Weight here
         },
       ]);
 
@@ -140,6 +225,7 @@ function ProductForm() {
         description: '',
         discount: '',
         hsn: '',
+        diamond_weight: '', // Reset Diamond Weight
       });
     } catch (error) {
       console.error('Error adding product:', error.message);
@@ -222,7 +308,6 @@ function ProductForm() {
                         <option value="Studs">Studs</option>
                         <option value="Pendant">Pendant</option>
                         <option value="Hoops">Hoops</option>
-
                       </Input>
                     </FormGroup>
                   </Col>
@@ -307,16 +392,15 @@ function ProductForm() {
                   </Col>
                 </Row>
                 <Row>
-                  <Col md="12">
+                  <Col md="6">
                     <FormGroup>
-                      <label>Description</label>
+                      <label>Diamond Weight (ct)</label>
                       <Input
-                        placeholder="Enter product description"
-                        type="textarea"
-                        name="description"
-                        value={formValues.description}
+                        placeholder="Enter diamond weight in carats"
+                        type="number"
+                        name="diamond_weight"
+                        value={formValues.diamond_weight}
                         onChange={handleChange}
-                        rows="4"
                       />
                     </FormGroup>
                   </Col>
@@ -324,9 +408,23 @@ function ProductForm() {
                 <Row>
                   <Col md="12">
                     <FormGroup>
-                      <label>Discount (%)</label>
+                      <label>Description</label>
                       <Input
-                        placeholder="Enter discount percentage"
+                        placeholder="Enter description"
+                        type="textarea"
+                        name="description"
+                        value={formValues.description}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Discount</label>
+                      <Input
+                        placeholder="Enter discount (%)"
                         type="number"
                         name="discount"
                         value={formValues.discount}
@@ -339,12 +437,22 @@ function ProductForm() {
                   <Button className="btn-fill" color="primary" type="submit">
                     Add Product
                   </Button>
+                  <Button className="btn-fill" color="secondary" onClick={()=>{
+                    printLabel()
+                  }} style={{ marginLeft: '10px' }}>
+                    Print Label
+                  </Button>
                 </CardFooter>
               </Form>
             </CardBody>
           </Card>
         </Col>
       </Row>
+      <iframe
+        ref={iframeRef}
+        style={{ display: 'none' }} // Hide the iframe
+        title="PDF Preview"
+      />
     </div>
   );
 }
