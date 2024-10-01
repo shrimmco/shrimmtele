@@ -30,6 +30,8 @@ function ProductForm() {
     discount: '',
     hsn: '',
     diamond_weight: '',  // New field for Diamond Weight
+    sihi: '',  // New field for Sihi
+    kt: '',  
   });
   const iframeRef = useRef(null);
   const getTextWidth = (text, fs, mul) => {
@@ -118,7 +120,7 @@ function ProductForm() {
       page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 8, 0.7), y: 14, size: 8, color, font: boldFont });
   
       if (diamond_weight !== '') {
-        page.drawText(`Dia.wt:${diamond_weight}ct`, { x: 4, y: 18, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight} SI-HI ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
       }
   
       // Save the modified PDF
@@ -236,7 +238,9 @@ function ProductForm() {
           description: formValues.description,
           discount: formValues.discount,
           hsn: formValues.hsn,
-          diamond_weight: formValues.diamond_weight, // Added Diamond Weight here
+          diamond_weight: formValues.diamond_weight,
+          sihi: formValues.sihi, // Added Sihi
+          kt: formValues.kt,     // Added KT
         },
       ]);
 
@@ -256,13 +260,16 @@ function ProductForm() {
         description: '',
         discount: '',
         hsn: '',
-        diamond_weight: '', // Reset Diamond Weight
+        diamond_weight: '',
+        sihi: '', // Reset Sihi
+        kt: '',   // Reset KT
       });
     } catch (error) {
       console.error('Error adding product:', error.message);
       alert('Error adding product: ' + error.message);
     }
   };
+
 
   return (
     <div className="content">
@@ -459,6 +466,32 @@ function ProductForm() {
                         type="number"
                         name="discount"
                         value={formValues.discount}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Sihi</label>
+                      <Input
+                        placeholder="Enter Sihi"
+                        type="number"
+                        name="sihi"
+                        value={formValues.sihi}
+                        onChange={handleChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md="6">
+                    <FormGroup>
+                      <label>Kt</label>
+                      <Input
+                        placeholder="Enter KT"
+                        type="number"
+                        name="kt"
+                        value={formValues.kt}
                         onChange={handleChange}
                       />
                     </FormGroup>
