@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -16,6 +16,9 @@ import { toast } from 'react-toastify';
 import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
 import fontkit from '@pdf-lib/fontkit';
 function ProductForm() {
+  const grate14k = 5050
+  const dprice = 78000
+  const labour = 1400
   const [formValues, setFormValues] = useState({
     name: '',
     price: '',
@@ -37,6 +40,19 @@ function ProductForm() {
   const getTextWidth = (text, fs, mul) => {
     return text.length * (fs * mul);
   };
+
+  useEffect(()=>{
+    
+    if (formValues.diamond_weight !== '') {
+      console.log("565")
+      let nwt = formValues.weight - formValues.diamond_weight * 0.200 
+      let diarate = formValues.diamond_weight * dprice
+      let grate = nwt * grate14k
+      let total = diarate+grate+(labour*formValues.weight)
+      setFormValues({ ...formValues, price : total.toFixed(3) });
+
+      } 
+  },[formValues])
   const printLabel = async () => {
     const { name, price, weight, hsn, diamond_weight,kt } = formValues;
   
@@ -121,7 +137,7 @@ function ProductForm() {
   
       if (diamond_weight !== '') {
         let nwt = weight - diamond_weight * 0.200 
-        page.drawText(`N.wt:${nwt}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
         page.drawText(`Dia.wt:${diamond_weight} SI-HI ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
       } 
       else {
@@ -151,7 +167,14 @@ function ProductForm() {
   };
   
   const handleChange = (event) => {
+
+  
     const { name, value } = event.target;
+    console.log(name)
+    if(name === "weight"){
+
+      console.log("nhj")
+    }
     setFormValues({ ...formValues, [name]: value });
   };
 
