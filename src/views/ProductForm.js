@@ -80,7 +80,7 @@ function ProductForm() {
       };
 
       // Add text to the PDF at specific positions
-      page.drawText(`${name}`, { x: 4, y: 33, size: 6, color, font: boldFont });
+      page.drawText(`${name}`, { x: 2, y: 33, size: 7, color, font: boldFont });
       page.drawText(`MRP:${price}/-`, { x: 90 - getTextWidth(`MRP: ${price}/-`, 6, 0.6), y: 26, size: 6, color, font: boldFont });
       page.drawText(`N.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
       page.drawText(`T.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
