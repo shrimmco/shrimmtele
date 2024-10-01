@@ -138,7 +138,7 @@ function ProductForm() {
       if (diamond_weight !== '') {
         let nwt = weight - diamond_weight * 0.200 
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
-        page.drawText(`Dia.wt:${diamond_weight} SI-HI ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
       } 
       else {
       page.drawText(`N.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
