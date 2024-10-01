@@ -112,13 +112,13 @@ function ProductForm() {
       drawTextWithWrap(name, 4, 35, 85, boldFont, fontSizeNormal,fontSizeSmall);
   
       // Draw other fields
-      page.drawText(`MRP:${price}/-`, { x: 4, y: 8, size: 5, color, font: boldFont });
-      page.drawText(`N.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
+      page.drawText(`MRP:${price}/-`, { x: 4, y: 12, size: 5, color, font: boldFont });
+      page.drawText(`N.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
       page.drawText(`T.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
-      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 8, 0.7), y: 14, size: 8, color, font: boldFont });
+      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 8, 0.7), y: 12, size: 8, color, font: boldFont });
   
       if (diamond_weight !== '') {
-        page.drawText(`Dia.wt:${diamond_weight}ct`, { x: 4, y: 14, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight}ct`, { x: 4, y: 16, size: 5, color, font: boldFont });
       }
   
       // Save the modified PDF
