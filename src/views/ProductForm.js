@@ -127,7 +127,7 @@ function ProductForm() {
       };
 
       // Draw the product name with word wrapping
-      drawTextWithWrap(name, 4, 38, 80, boldFont, fontSizeNormal, fontSizeSmall);
+      drawTextWithWrap(name, 4, 38, 75, boldFont, fontSizeNormal, fontSizeSmall);
 
       // Draw other fields
       page.drawText(`MRP:${(price).split(".")[0]}/-`, { x: 4, y: 16, size: 5, color, font: boldFont });
