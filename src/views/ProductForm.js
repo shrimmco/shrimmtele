@@ -178,7 +178,7 @@ function ProductForm() {
       let diarate = value * dprice
       let grate = nwt * grate14k
       let total = diarate + grate + (labour * formValues.weight)
-      price = total.toFixed(2)
+      price = total.toFixed(0)
       setFormValues({ ...formValues, price: total.toFixed(2) });
     }
     if (price === 0) { setFormValues({ ...formValues, [name]: value }); }
