@@ -34,71 +34,71 @@ function ProductForm() {
     hsn: '',
     diamond_weight: '',  // New field for Diamond Weight
     sihi: '',  // New field for Sihi
-    kt: '',  
+    kt: '',
   });
   const iframeRef = useRef(null);
   const getTextWidth = (text, fs, mul) => {
     return text.length * (fs * mul);
   };
 
-  useEffect(()=>{
-    
-    if (formValues.diamond_weight !== '') {
-      console.log("565")
-      let nwt = formValues.weight - formValues.diamond_weight * 0.200 
-      let diarate = formValues.diamond_weight * dprice
-      let grate = nwt * grate14k
-      let total = diarate+grate+(labour*formValues.weight)
-      setFormValues({ ...formValues, price : total.toFixed(3) });
+  useEffect(() => {
 
-      } 
-  },[formValues])
+    // if (formValues.diamond_weight !== '') {
+    //   
+    //   let nwt = formValues.weight - formValues.diamond_weight * 0.200 
+    //   let diarate = formValues.diamond_weight * dprice
+    //   let grate = nwt * grate14k
+    //   let total = diarate+grate+(labour*formValues.weight)
+    //   setFormValues({ ...formValues, price : total.toFixed(3) });
+
+    //   } 
+  }, [formValues])
   const printLabel = async () => {
-    const { name, price, weight, hsn, diamond_weight,kt } = formValues;
-  
+    const { name, price, weight, hsn, diamond_weight, kt } = formValues;
+
     // Check required fields
     if (name === '' || price === '' || weight === '' || hsn === '') {
       toast('Please enter Name, Price, Weight, and HSN code.');
       return;
     }
-  
+
     try {
       // Fetch the PDF from Supabase
       const { data, error } = await supabase.storage
         .from('labelpdf')
         .download(`labelfinal.pdf`);
-  
+
       if (error) {
         throw new Error('Error fetching the PDF from Supabase: ' + error.message);
       }
-  
+
       const { data: fontData, error: fontError } = await supabase.storage
         .from('labelpdf')
-        .download('cpb.ttf');
-  
+        .download('cpr.ttf');
+
       if (fontError) {
         throw new Error('Error fetching the font from Supabase: ' + fontError.message);
       }
-  
+
       // Load the existing PDF into pdf-lib
       const pdfBytes = await data.arrayBuffer();
       const pdfDoc = await PDFDocument.load(pdfBytes);
       pdfDoc.registerFontkit(fontkit);
-  
+
       // Load the bold font
       const fontBytes = await fontData.arrayBuffer();
       const boldFont = await pdfDoc.embedFont(fontBytes);
-  
+
       // Get the first page of the PDF to modify
       const page = pdfDoc.getPages()[0];
-  
+
       // Define the font sizes and color for the text
       const fontSizeNormal = 7; // Normal font size
       const fontSizeSmall = 5;  // Smaller font size for word wrap
       const color = rgb(0, 0, 0); // Black text
-  
+
       // Function to draw text with word wrapping
-      const drawTextWithWrap = (text, x, y, maxWidth, font, size,size2) => {
+      const drawTextWithWrap = (text, x, y, maxWidth, font, size, size2) => {
         let result = text.charAt(0).toUpperCase() + text.slice(1);
         const words = result.split(' ');
         let line = '';
@@ -108,74 +108,84 @@ function ProductForm() {
         for (const word of words) {
           const testLine = line + word + ' ';
           const testWidth = getTextWidth(testLine, size, 0.6);
-  
+
           if (testWidth > maxWidth) {
             fsize = size2
             // If the line is too wide, draw the current line and start a new one
-            page.drawText(line, { x, y: yPosition, size:fsize, color, font });
+            page.drawText(line, { x, y: yPosition, size: fsize, color, font });
             line = word + ' '; // Start new line
             yPosition -= 4; // Move down for the next line
           } else {
             line = testLine; // Update line
           }
         }
-  
+
         // Draw any remaining text in the line
         if (line) {
-          page.drawText(line, { x, y: yPosition, size:fsize, color, font });
+          page.drawText(line, { x, y: yPosition, size: fsize, color, font });
         }
       };
-  
+
       // Draw the product name with word wrapping
-      drawTextWithWrap(name, 4, 36, 85, boldFont, fontSizeNormal,fontSizeSmall);
-      
+      drawTextWithWrap(name, 4, 36, 85, boldFont, fontSizeNormal, fontSizeSmall);
+
       // Draw other fields
       page.drawText(`MRP:${(price).split(".")[0]}/-`, { x: 4, y: 14, size: 5, color, font: boldFont });
-      
+
       page.drawText(`G.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
-      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 8, 0.7), y: 24, size: 8, color, font: boldFont });
-  
+      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
+
       if (diamond_weight !== '') {
-        let nwt = weight - diamond_weight * 0.200 
+        let nwt = weight - diamond_weight * 0.200
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
         page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
-      } 
+      }
       else {
-      page.drawText(`N.wt:${weight}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
 
       }
-  
+
       // Save the modified PDF
       const modifiedPdfBytes = await pdfDoc.save();
-  
+
       // Create a Blob URL for the modified PDF
       const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
       const pdfBlobUrl = URL.createObjectURL(modifiedPdfBlob);
-  
+
       // Set the iframe source to the Blob URL
       iframeRef.current.src = pdfBlobUrl;
-  
+
       // Wait for the iframe to load and then trigger print
       iframeRef.current.onload = () => {
         iframeRef.current.contentWindow.print(); // Trigger the print dialog
       };
-  
+
     } catch (error) {
       console.error('Error fetching or printing the PDF:', error.message);
       toast.error('Error fetching or printing the PDF: ' + error.message);
     }
   };
-  
+
   const handleChange = (event) => {
 
-  
+
     const { name, value } = event.target;
     console.log(name)
-    if(name === "weight"){
-
-      console.log("nhj")
+    let price = 0
+    if (name == "diamond_weight") {
+      console.log(formValues.weight,value)
+      let nwt = formValues.weight - value * 0.200
+      let diarate = value * dprice
+      let grate = nwt * grate14k
+      let total = diarate + grate + (labour * formValues.weight)
+      price = total.toFixed(2)
+      setFormValues({ ...formValues, price: total.toFixed(2) });
     }
-    setFormValues({ ...formValues, [name]: value });
+    if (price === 0) { setFormValues({ ...formValues, [name]: value }); }
+    else {
+      setFormValues({ ...formValues, [name]: value, price: price });
+    }
+    // setFormValues({ ...formValues, [name]: value });
   };
 
   const handleFileChange = (event) => {
@@ -183,7 +193,7 @@ function ProductForm() {
   };
 
 
- 
+
   const generateHSNCode = async () => {
     try {
       let hsnCode;
@@ -530,7 +540,7 @@ function ProductForm() {
                   <Button className="btn-fill" color="primary" type="submit">
                     Add Product
                   </Button>
-                  <Button className="btn-fill" color="secondary" onClick={()=>{
+                  <Button className="btn-fill" color="secondary" onClick={() => {
                     printLabel()
                   }} style={{ marginLeft: '10px' }}>
                     Print Label
