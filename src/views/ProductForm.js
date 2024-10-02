@@ -127,21 +127,21 @@ function ProductForm() {
       };
 
       // Draw the product name with word wrapping
-      drawTextWithWrap(name, 4, 36, 85, boldFont, fontSizeNormal, fontSizeSmall);
+      drawTextWithWrap(name, 4, 38, 85, boldFont, fontSizeNormal, fontSizeSmall);
 
       // Draw other fields
-      page.drawText(`MRP:${(price).split(".")[0]}/-`, { x: 4, y: 14, size: 5, color, font: boldFont });
+      page.drawText(`MRP:${(price).split(".")[0]}/-`, { x: 4, y: 16, size: 5, color, font: boldFont });
 
-      page.drawText(`G.wt:${weight}g`, { x: 4, y: 26, size: 5, color, font: boldFont });
+      page.drawText(`G.wt:${weight}g`, { x: 4, y: 28, size: 5, color, font: boldFont });
       page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
       if (diamond_weight !== '') {
         let nwt = weight - diamond_weight * 0.200
-        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
-        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 18, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 20, size: 5, color, font: boldFont });
       }
       else {
-        page.drawText(`N.wt:${weight}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
 
       }
 
