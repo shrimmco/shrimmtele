@@ -16,8 +16,8 @@ import { toast } from 'react-toastify';
 import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
 import fontkit from '@pdf-lib/fontkit';
 function ProductForm() {
-  const grate14k = 5050
-  const dprice = 78000
+  const [drate,setDrate] = useState(78000)
+  const [grate,setGrate] = useState(5050)
   const labour = 1400
   const [formValues, setFormValues] = useState({
     name: '',
@@ -173,11 +173,11 @@ function ProductForm() {
     console.log(name)
     let price = 0
     if (name == "diamond_weight") {
-      console.log(formValues.weight,value)
+      console.log(formValues.weight, value)
       let nwt = formValues.weight - value * 0.200
-      let diarate = value * dprice
-      let grate = nwt * grate14k
-      let total = diarate + grate + (labour * formValues.weight)
+      let diarate = value * drate
+      let gprice = nwt * grate
+      let total = diarate + gprice + (labour * formValues.weight)
       price = total.toFixed(0)
       setFormValues({ ...formValues, price: total.toFixed(2) });
     }
@@ -545,6 +545,36 @@ function ProductForm() {
                   }} style={{ marginLeft: '10px' }}>
                     Print Label
                   </Button>
+
+                  <Row>
+                    <Col md="6">
+                      <FormGroup>
+                        <label>Gold Rate</label>
+                        <Input
+                          placeholder="Enter gold rate"
+                          type="number"
+                          onChange={(e) => {
+                            setGrate(e.target.value)
+                          }}
+                          value={grate}
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md="6">
+                      <FormGroup>
+                        <label>diamond rate</label>
+                        <Input
+                          placeholder="Enter diamond rate"
+                          type="number"
+                          onChange={(e) => {
+                           setDrate(e.target.value)
+                          }}
+                          value={drate
+                          }
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
                 </CardFooter>
               </Form>
             </CardBody>
