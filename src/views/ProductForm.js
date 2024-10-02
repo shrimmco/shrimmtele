@@ -74,7 +74,7 @@ function ProductForm() {
 
       const { data: fontData, error: fontError } = await supabase.storage
         .from('labelpdf')
-        .download('cpr.ttf');
+        .download('cpb.ttf');
 
       if (fontError) {
         throw new Error('Error fetching the font from Supabase: ' + fontError.message);
