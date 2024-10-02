@@ -287,21 +287,14 @@ function ProductForm() {
 
       alert('Product added successfully!');
       setFormValues({
+        ...formValues,
         name: '',
         price: '',
-        size: '',
-        category: '',
-        collection_name: '',
         weight: '',
-        material: '',
         stockPhoto: null,
         stockPhotoCode: '',
-        description: '',
-        discount: '',
-        hsn: '',
+        hsn: formValues.hsn+1,
         diamond_weight: '',
-        sihi: '', // Reset Sihi
-        kt: '',   // Reset KT
       });
     } catch (error) {
       console.error('Error adding product:', error.message);
