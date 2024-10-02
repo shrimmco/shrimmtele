@@ -128,6 +128,7 @@ const PhoneCameraUpload = () => {
                 ref={cameraRef}
                 facingMode={facingMode}
                 style={{ width: '100%', height: '100%' }}
+                
             />
             <div className="camera-controls">
                 <CaptureButton onClick={handleCapture} isProcessing={isProcessing}>
