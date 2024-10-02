@@ -293,7 +293,7 @@ function ProductForm() {
         weight: '',
         stockPhoto: null,
         stockPhotoCode: '',
-        hsn: formValues.hsn+1,
+        hsn: Number(formValues.hsn)+1,
         diamond_weight: '',
       });
     } catch (error) {
