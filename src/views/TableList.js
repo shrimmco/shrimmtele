@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -8,6 +8,9 @@ import {
   ModalFooter,
 } from 'reactstrap';
 import { supabase } from '../supabaseClient';
+import { toast } from 'react-toastify';
+import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
+import fontkit from '@pdf-lib/fontkit';
 import {
   Table,
   TableBody,
@@ -20,6 +23,7 @@ import {
   Pagination,
   IconButton,
 } from '@mui/material';
+import LabelIcon from '@mui/icons-material/Label';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -36,10 +40,130 @@ const ProductList = () => {
   const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [totalCounterPrice, setTotalCounterPrice] = useState(0); // New state to store total price for selected products
-
+  const iframeRef = useRef(null);
+  const getTextWidth = (text, fs, mul) => {
+    return text.length * (fs * mul);
+  };
   useEffect(() => {
     fetchProducts();
   }, [currentPage, searchTerm]);
+
+
+
+
+  const printLabel = async ({name, price, weight, hsn, diamond_weight, kt}) => {
+
+    // Check required fields
+    if (name === '' || price === '' || weight === '' || hsn === '') {
+      toast('Please enter Name, Price, Weight, and HSN code.');
+      return;
+    }
+
+    try {
+      // Fetch the PDF from Supabase
+      const { data, error } = await supabase.storage
+        .from('labelpdf')
+        .download(`labelfinal.pdf`);
+
+      if (error) {
+        throw new Error('Error fetching the PDF from Supabase: ' + error.message);
+      }
+
+      const { data: fontData, error: fontError } = await supabase.storage
+        .from('labelpdf')
+        .download('cpb.ttf');
+
+      if (fontError) {
+        throw new Error('Error fetching the font from Supabase: ' + fontError.message);
+      }
+
+      // Load the existing PDF into pdf-lib
+      const pdfBytes = await data.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      pdfDoc.registerFontkit(fontkit);
+
+      // Load the bold font
+      const fontBytes = await fontData.arrayBuffer();
+      const boldFont = await pdfDoc.embedFont(fontBytes);
+
+      // Get the first page of the PDF to modify
+      const page = pdfDoc.getPages()[0];
+
+      // Define the font sizes and color for the text
+      const fontSizeNormal = 7; // Normal font size
+      const fontSizeSmall = 5;  // Smaller font size for word wrap
+      const color = rgb(0, 0, 0); // Black text
+
+      // Function to draw text with word wrapping
+      const drawTextWithWrap = (text, x, y, maxWidth, font, size, size2) => {
+        let result = text.charAt(0).toUpperCase() + text.slice(1);
+        const words = result.split(' ');
+        let line = '';
+        let lineHeight = 8; // Adjust line height as needed
+        let yPosition = y;
+        let fsize = size
+        for (const word of words) {
+          const testLine = line + word + ' ';
+          const testWidth = getTextWidth(testLine, size, 0.6);
+
+          if (testWidth > maxWidth) {
+            fsize = size2
+            // If the line is too wide, draw the current line and start a new one
+            page.drawText(line, { x, y: yPosition, size: fsize, color, font });
+            line = word + ' '; // Start new line
+            yPosition -= 4; // Move down for the next line
+          } else {
+            line = testLine; // Update line
+          }
+        }
+
+        // Draw any remaining text in the line
+        if (line) {
+          page.drawText(line, { x, y: yPosition, size: fsize, color, font });
+        }
+      };
+
+      // Draw the product name with word wrapping
+      drawTextWithWrap(name, 4, 38, 75, boldFont, fontSizeNormal, fontSizeSmall);
+
+      // Draw other fields
+      page.drawText(`MRP:${price}/-`, { x: 4, y: 16, size: 5, color, font: boldFont });
+
+      page.drawText(`G.wt:${weight}g`, { x: 4, y: 28, size: 5, color, font: boldFont });
+      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
+
+      if (diamond_weight !== null) {
+        let nwt = weight - diamond_weight * 0.200
+        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 20, size: 5, color, font: boldFont });
+      }
+      else {
+        page.drawText(`Pt:${"92.50"}`, { x: 4, y: 20, size: 5, color, font: boldFont });
+
+        page.drawText(`N.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
+
+      }
+
+      // Save the modified PDF
+      const modifiedPdfBytes = await pdfDoc.save();
+
+      // Create a Blob URL for the modified PDF
+      const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+      const pdfBlobUrl = URL.createObjectURL(modifiedPdfBlob);
+
+      // Set the iframe source to the Blob URL
+      iframeRef.current.src = pdfBlobUrl;
+
+      // Wait for the iframe to load and then trigger print
+      iframeRef.current.onload = () => {
+        iframeRef.current.contentWindow.print(); // Trigger the print dialog
+      };
+
+    } catch (error) {
+      console.error('Error fetching or printing the PDF:', error.message);
+      toast.error('Error fetching or printing the PDF: ' + error.message);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -188,6 +312,14 @@ const ProductList = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
+                  <IconButton
+                    color="success"
+                    onClick={() => {
+                     printLabel(product)
+                    }}
+                  >
+                    <LabelIcon />
+                  </IconButton>
                 </TableCell>
                 <TableCell align="center">
                   <IconButton onClick={() => toggleSelectForCounter(product)}>
@@ -198,6 +330,7 @@ const ProductList = () => {
                     )}
                   </IconButton>
                 </TableCell>
+                
               </TableRow>
             ))}
           </TableBody>
@@ -261,6 +394,11 @@ const ProductList = () => {
           />
         </ModalBody>
       </Modal>
+      <iframe
+        ref={iframeRef}
+        style={{ display: 'none' }} // Hide the iframe
+        title="PDF Preview"
+      />
     </div>
   );
 };
