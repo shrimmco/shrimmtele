@@ -51,13 +51,10 @@ const ProductList = () => {
 
 
 
-  const printLabel = async ({name, price, weight, hsn, diamond_weight, kt}) => {
+  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, kt}) => {
 
     // Check required fields
-    if (name === '' || price === '' || weight === '' || hsn === '') {
-      toast('Please enter Name, Price, Weight, and HSN code.');
-      return;
-    }
+   
 
     try {
       // Fetch the PDF from Supabase
@@ -129,19 +126,18 @@ const ProductList = () => {
       // Draw other fields
       page.drawText(`MRP:${price}/-`, { x: 4, y: 16, size: 5, color, font: boldFont });
 
-      page.drawText(`G.wt:${weight}g`, { x: 4, y: 28, size: 5, color, font: boldFont });
       page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
       if (diamond_weight !== null) {
         let nwt = weight - diamond_weight * 0.200
+        page.drawText(`G.wt:${weight}g`, { x: 4, y: 28, size: 5, color, font: boldFont });
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
         page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 20, size: 5, color, font: boldFont });
       }
       else {
-        page.drawText(`Pt:${"92.50"}`, { x: 4, y: 20, size: 5, color, font: boldFont });
-
-        page.drawText(`N.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
-
+        page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 28, size: 5, color, font: boldFont });
+        page.drawText(`G.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 20, size: 5, color, font: boldFont });
       }
 
       // Save the modified PDF
