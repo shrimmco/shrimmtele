@@ -51,7 +51,7 @@ const ProductList = () => {
 
 
 
-  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, kt}) => {
+  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, kt,size}) => {
 
     // Check required fields
    
@@ -137,6 +137,15 @@ const ProductList = () => {
       else {
         page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 28, size: 5, color, font: boldFont });
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 24, size: 5, color, font: boldFont });
+        if (size!=="universal"){
+          page.drawText(`${size}`, { x:  70 - getTextWidth(`#${size}`, 6, 0.6), y: 32, size: 6, color, font: boldFont });
+
+        }
+        else {
+          page.drawText(`U`, { x: 70, y: 32, size: 6, color, font: boldFont });
+
+        }
+
         page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 20, size: 5, color, font: boldFont });
       }
 
