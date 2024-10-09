@@ -156,32 +156,32 @@ const saveDescription = async () => {
       };
 
       // Draw the product name with word wrapping
-      drawTextWithWrap(name, 4, 34, 75, boldFont, fontSizeNormal, fontSizeSmall);
+      drawTextWithWrap(name, 4, 30, 75, boldFont, fontSizeNormal, fontSizeSmall);
 
       // Draw other fields
-      page.drawText(`MRP:${price}/-`, { x: 4, y: 12, size: 5, color, font: boldFont });
+      page.drawText(`MRP:${price}/-`, { x: 4, y: 8, size: 5, color, font: boldFont });
 
-      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 22, size: 6, color, font: boldFont });
+      page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 18, size: 6, color, font: boldFont });
 
       if (diamond_weight !== null) {
         let nwt = weight - diamond_weight * 0.200
-        page.drawText(`G.wt:${weight}g`, { x: 4, y: 22, size: 5, color, font: boldFont });
-        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
-        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 16, size: 5, color, font: boldFont });
+        page.drawText(`G.wt:${weight}g`, { x: 4, y: 18, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
       else {
-        page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 24, size: 5, color, font: boldFont });
-        page.drawText(`G.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
+        page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
+        page.drawText(`G.wt:${weight}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
         if (size!=="universal"){
-          page.drawText(`${size}`, { x:  70 - getTextWidth(`#${size}`, 6, 0.6), y: 28, size: 6, color, font: boldFont });
+          page.drawText(`${size}`, { x:  70 - getTextWidth(`#${size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
         }
         else {
-          page.drawText(`U`, { x: 70, y: 28, size: 6, color, font: boldFont });
+          page.drawText(`U`, { x: 70, y: 24, size: 6, color, font: boldFont });
 
         }
 
-        page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 16, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
 
       // Save the modified PDF
