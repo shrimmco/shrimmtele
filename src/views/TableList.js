@@ -156,7 +156,7 @@ const saveDescription = async () => {
       };
 
       // Draw the product name with word wrapping
-      drawTextWithWrap(name, 4, 30, 75, boldFont, fontSizeNormal, fontSizeSmall);
+      drawTextWithWrap(name, 4, 30, 80, boldFont, fontSizeNormal, fontSizeSmall);
 
       // Draw other fields
       page.drawText(`MRP:${price}/-`, { x: 4, y: 8, size: 5, color, font: boldFont });
