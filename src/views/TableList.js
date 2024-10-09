@@ -7,10 +7,13 @@ import {
   ModalBody,
   ModalFooter,
 } from 'reactstrap';
+import ReactQuill from 'react-quill'; // Import Quill
+import 'react-quill/dist/quill.snow.css';
 import { supabase } from '../supabaseClient';
 import { toast } from 'react-toastify';
 import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
 import fontkit from '@pdf-lib/fontkit';
+import "./style.css"
 import {
   Table,
   TableBody,
@@ -39,7 +42,9 @@ const ProductList = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [totalCounterPrice, setTotalCounterPrice] = useState(0); // New state to store total price for selected products
+  const [totalCounterPrice, setTotalCounterPrice] = useState(0); 
+  const [descriptionModal, setDescriptionModal] = useState({ isOpen: false, product: null }); // New state for description modal
+  const [quillContent, setQuillContent] = useState(''); // State for Quill.js content
   const iframeRef = useRef(null);
   const getTextWidth = (text, fs, mul) => {
     return text.length * (fs * mul);
@@ -48,6 +53,36 @@ const ProductList = () => {
     fetchProducts();
   }, [currentPage, searchTerm]);
 
+// Handle opening and closing description modal
+const openDescriptionModal = (product) => {
+  setQuillContent(product.description || ''); // Set existing description or empty
+  setDescriptionModal({ isOpen: true, product });
+};
+
+const closeDescriptionModal = () => {
+  setDescriptionModal({ isOpen: false, product: null });
+};
+
+// Function to save the description
+const saveDescription = async () => {
+  try {
+    const { error } = await supabase
+      .from('products')
+      .update({ description: quillContent }) // Update the description field
+      .eq('id', descriptionModal.product.id);
+
+    if (error) {
+      throw new Error('Error updating description: ' + error.message);
+    }
+
+    toast.success('Description updated successfully!');
+    fetchProducts(); // Refresh the products list after updating
+    closeDescriptionModal(); // Close the modal
+  } catch (error) {
+    console.error('Error updating description:', error.message);
+    toast.error('Error updating description: ' + error.message);
+  }
+};
 
 
 
@@ -68,7 +103,7 @@ const ProductList = () => {
 
       const { data: fontData, error: fontError } = await supabase.storage
         .from('labelpdf')
-        .download('cpb.ttf');
+        .download('cpr.ttf');
 
       if (fontError) {
         throw new Error('Error fetching the font from Supabase: ' + fontError.message);
@@ -325,6 +360,9 @@ const ProductList = () => {
                   >
                     <LabelIcon />
                   </IconButton>
+                  <IconButton onClick={() => openDescriptionModal(product)}>
+                    <LabelIcon /> 
+                  </IconButton>
                 </TableCell>
                 <TableCell align="center">
                   <IconButton onClick={() => toggleSelectForCounter(product)}>
@@ -367,6 +405,42 @@ const ProductList = () => {
       <div style={{ marginTop: '20px', fontWeight: 'bold', color: 'white' }}>
         Total Price of Selected Products for Counter: ₹{totalCounterPrice}/-
       </div>
+  {/* Quill.js Description Modal */}
+  <Modal isOpen={descriptionModal.isOpen} toggle={closeDescriptionModal}>
+        <ModalHeader toggle={closeDescriptionModal}>
+          Edit Description for {descriptionModal.product?.name}
+        </ModalHeader>
+        <ModalBody style={{height:"400px"}}>
+          <ReactQuill
+            value={quillContent}
+            onChange={setQuillContent}
+            modules={{
+              toolbar: [
+                [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                ['bold', 'italic', 'underline', 'strike'],
+                ['link', 'image', 'blockquote', 'code-block'],
+                [{ 'align': [] }],
+                ['clean'],
+              ],
+            }}
+            formats={[
+              'header', 'font', 'list', 'bullet',
+              'bold', 'italic', 'underline', 'strike',
+              'link', 'image', 'blockquote', 'code-block', 'align'
+            ]}
+            style={{ height: '300px', color: 'black' }}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={closeDescriptionModal}>
+            Cancel
+          </Button>
+          <Button color="primary" onClick={saveDescription}>
+            Save
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={openDeleteModal} toggle={() => setOpenDeleteModal(false)}>

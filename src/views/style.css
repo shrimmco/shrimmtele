@@ -1,0 +1,18 @@
+/* Ensure text color is black in Quill editor */
+.ql-editor {
+    color: black !important;
+  }
+  
+  /* Ensure bullet points (ordered and unordered) are also black */
+  .ql-editor ul,
+  .ql-editor ol,
+  .ql-editor li {
+    color: black !important;
+  }
+  
+  /* Additional optional styling to keep the editor looking clean */
+  .ql-editor ul li::before,  /* Bullets for unordered lists */
+  .ql-editor ol li::before {  /* Bullets for ordered lists */
+    color: black !important;  /* Ensure bullet markers are black */
+  }
+  
