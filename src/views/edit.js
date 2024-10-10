@@ -219,6 +219,8 @@ function EditProductPage() {
                                                 <option value="Trinkets">Trinkets</option>
                                                 <option value="Studs">Studs</option>
                                                 <option value="Pendant">Pendant</option>
+                                                <option value="Chain Pendant">Chain Pendant</option>
+                                                <option value="Chain Pendant Set">Chain Pendant Set</option>
                                                 <option value="Hoops">Hoops</option>
                                             </Input>
                                         </FormGroup>
