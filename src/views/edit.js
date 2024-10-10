@@ -85,7 +85,8 @@ function EditProductPage() {
         event.preventDefault();
 
         try {
-            let stockPhotoUrl = formValues.stockPhoto ? '' : formValues.stockPhoto;
+            // Initialize the stockPhotoUrl with the existing one or upload a new one if available
+            let stockPhotoUrl = existingPhotoUrl; // Start with the existing URL
 
             if (formValues.stockPhoto) {
                 const { data, error } = await supabase.storage
@@ -96,7 +97,21 @@ function EditProductPage() {
                     });
 
                 if (error) throw error;
-                stockPhotoUrl = data.path;
+                stockPhotoUrl = data.path; // Update with new uploaded path
+            }
+
+            let stockPhotoUrlNew = '';
+
+            if (formValues.uniqueCode!=='') {
+                const { data, error } = await supabase
+                    .from('image_codes')
+                    .select('image_name')
+                    .eq('code', formValues.uniqueCode)
+                    .single();
+
+                if (error) throw new Error('Invalid code. Please enter a valid 4-digit code.');
+
+                stockPhotoUrlNew = data.image_name;
             }
 
             const { error } = await supabase.from('products').update({
@@ -104,20 +119,18 @@ function EditProductPage() {
                 price: formValues.price,
                 size: formValues.size,
                 category: formValues.category,
-                stock_photo: stockPhotoUrl || formValues.stockPhoto,
                 description: formValues.description,
                 discount: formValues.discount,
-                unique_code: formValues.uniqueCode,
-                collection_name: formValues.collectionName, // Update collection name
-                weight: formValues.weight,                 // Update weight
-                material: formValues.material,             // Update material
+                collection_name: formValues.collectionName,
+                weight: formValues.weight,
+                material: formValues.material,
             }).eq('id', id);
 
             if (error) throw error;
 
             setUploadSuccess(true);
             alert('Product updated successfully!');
-            navigate('/product-list'); // Redirect to the product list page
+            navigate('/admin/allproducts'); // Redirect to the product list page
         } catch (error) {
             console.error('Error updating product:', error.message);
         }
@@ -195,9 +208,18 @@ function EditProductPage() {
                                                 required
                                             >
                                                 <option value="">Select Category</option>
-                                                <option value="Clothing">Clothing</option>
-                                                <option value="Electronics">Electronics</option>
-                                                <option value="Accessories">Accessories</option>
+                                                <option value="Ring">Ring</option>
+                                                <option value="Bracelet">Bracelet</option>
+                                                <option value="Necklace">Necklace</option>
+                                                <option value="Earring">Earring</option>
+                                                <option value="Set">Set</option>
+                                                <option value="Anklet">Anklet</option>
+                                                <option value="Chains">Chains</option>
+                                                <option value="Bangles">Bangles</option>
+                                                <option value="Trinkets">Trinkets</option>
+                                                <option value="Studs">Studs</option>
+                                                <option value="Pendant">Pendant</option>
+                                                <option value="Hoops">Hoops</option>
                                             </Input>
                                         </FormGroup>
                                     </Col>
@@ -205,8 +227,8 @@ function EditProductPage() {
                                 <Row>
                                     <Col md="12">
                                         <FormGroup >
-                                            <label style={{cursor:"pointer"}}>Upload Stock Photo <FaUpload /></label>
-                                            <Input style={{cursor:"pointer"}} type="file" onChange={handleFileChange} />
+                                            <label style={{ cursor: "pointer" }}>Upload Stock Photo <FaUpload /></label>
+                                            <Input style={{ cursor: "pointer" }} type="file" onChange={handleFileChange} />
                                         </FormGroup>
                                         <FormGroup>
                                             <label> Or Unique Photo Code</label>
