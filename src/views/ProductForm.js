@@ -134,7 +134,7 @@ function ProductForm() {
 
       page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 18, size: 6, color, font: boldFont });
 
-      if (diamond_weight !== null) {
+      if (diamond_weight!=='') {
         let nwt = weight - diamond_weight * 0.200
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
@@ -142,7 +142,7 @@ function ProductForm() {
       }
       else {
         page.drawText(`${formValues.collection_name.charAt(0).toUpperCase()+ formValues.collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
-        page.drawText(`G.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
+        page.drawText(`G.wt:${weight}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
         if (formValues.size!=="universal"){
           page.drawText(`${formValues.size}`, { x:  70 - getTextWidth(`#${formValues.size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
