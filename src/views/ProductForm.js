@@ -288,7 +288,7 @@ function ProductForm() {
           description: formValues.description,
           discount: formValues.discount,
           hsn: formValues.hsn,
-          diamond_weight: formValues.diamond_weight,
+          diamond_weight: formValues.diamond_weight===''?null:formValues.diamond_weight,
           sihi: formValues.sihi, // Added Sihi
           kt: formValues.kt,     // Added KT
         },
