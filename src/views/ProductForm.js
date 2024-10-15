@@ -16,8 +16,8 @@ import { toast } from 'react-toastify';
 import { PDFDocument, rgb } from 'pdf-lib';  // Import pdf-lib
 import fontkit from '@pdf-lib/fontkit';
 function ProductForm() {
-  const [drate,setDrate] = useState(78000)
-  const [grate,setGrate] = useState(5050)
+  const [drate, setDrate] = useState(78000)
+  const [grate, setGrate] = useState(5050)
   const labour = 1400
   const [formValues, setFormValues] = useState({
     name: '',
@@ -134,17 +134,17 @@ function ProductForm() {
 
       page.drawText(`#${hsn}`, { x: 70 - getTextWidth(`#${hsn}`, 6, 0.6), y: 18, size: 6, color, font: boldFont });
 
-      if (diamond_weight!=='') {
+      if (diamond_weight !== '') {
         let nwt = weight - diamond_weight * 0.200
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
         page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
       else {
-        page.drawText(`${formValues.collection_name.charAt(0).toUpperCase()+ formValues.collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
+        page.drawText(`${formValues.collection_name.charAt(0).toUpperCase() + formValues.collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
-        if (formValues.size!=="universal"){
-          page.drawText(`${formValues.size}`, { x:  70 - getTextWidth(`#${formValues.size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
+        if (formValues.size !== "universal") {
+          page.drawText(`${formValues.size}`, { x: 70 - getTextWidth(`#${formValues.size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
         }
         else {
@@ -152,7 +152,7 @@ function ProductForm() {
 
         }
 
-        page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 12, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g ` + `Pt:${"92.50"}`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
 
 
@@ -288,7 +288,7 @@ function ProductForm() {
           description: formValues.description,
           discount: formValues.discount,
           hsn: formValues.hsn,
-          diamond_weight: formValues.diamond_weight===''?null:formValues.diamond_weight,
+          diamond_weight: formValues.diamond_weight === '' ? null : formValues.diamond_weight,
           sihi: formValues.sihi, // Added Sihi
           kt: formValues.kt,     // Added KT
         },
@@ -304,7 +304,7 @@ function ProductForm() {
         weight: '',
         stockPhoto: null,
         stockPhotoCode: '',
-        hsn: Number(formValues.hsn)+1,
+        hsn: Number(formValues.hsn) + 1,
         diamond_weight: '',
       });
     } catch (error) {
@@ -377,20 +377,23 @@ function ProductForm() {
                         required
                       >
                         <option value="">Select Category</option>
-                        <option value="Ring">Ring</option>
-                        <option value="Bracelet">Bracelet</option>
-                        <option value="Necklace">Necklace</option>
-                        <option value="Earring">Earring</option>
-                        <option value="Set">Set</option>
-                        <option value="Anklet">Anklet</option>
-                        <option value="Chains">Chains</option>
-                        <option value="Bangles">Bangles</option>
-                        <option value="Trinkets">Trinkets</option>
-                        <option value="Studs">Studs</option>
-                        <option value="Pendant">Pendant</option>
-                        <option value="Hoops">Hoops</option>
+                        <option value="ring">Ring</option>
+                        <option value="bracelet">Bracelet</option>
+                        <option value="chains">Chains</option>
+                        <option value="necklace">Necklace</option>
+                        <option value="necklace set">Necklace Set</option>
+                        <option value="earring">Earring</option>
+                        <option value="bangles">Bangles</option>
+                        <option value="anklet">Anklet</option>
+                        <option value="studs">Studs</option>
+                        <option value="pendant set">Pendant Set</option>
+                        <option value="chain pendant">Chain Pendant</option>
+                        <option value="chain pendant set">Chain Pendant Set</option>
+                        <option value="hoops">Hoops</option>
+                        <option value="pendant">Pendant</option>
                       </Input>
                     </FormGroup>
+
                   </Col>
                 </Row>
                 <Row>
@@ -571,7 +574,7 @@ function ProductForm() {
                           placeholder="Enter diamond rate"
                           type="number"
                           onChange={(e) => {
-                           setDrate(e.target.value)
+                            setDrate(e.target.value)
                           }}
                           value={drate
                           }
