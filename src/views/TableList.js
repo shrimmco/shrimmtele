@@ -86,7 +86,7 @@ const saveDescription = async () => {
 
 
 
-  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, kt,size}) => {
+  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, sihi,kt,size}) => {
 
     // Check required fields
    
@@ -167,7 +167,7 @@ const saveDescription = async () => {
         let nwt = weight - diamond_weight * 0.200
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 18, size: 5, color, font: boldFont });
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
-        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight}ct ${sihi.toUpperCase()} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
       else {
         page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
@@ -313,6 +313,7 @@ const saveDescription = async () => {
               <TableCell>Size</TableCell>
               <TableCell>Category</TableCell>
               <TableCell>Collection</TableCell>
+              <TableCell>material</TableCell>
               <TableCell>Stock Photo</TableCell>
               <TableCell align="center">Actions</TableCell>
               <TableCell align="center">Select for Counter</TableCell>
@@ -327,6 +328,7 @@ const saveDescription = async () => {
                 <TableCell>{product.size}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>{product.collection_name}</TableCell>
+                <TableCell>{product.material}</TableCell>
                 <TableCell>
                   {product.stock_photo ? (
                     <span

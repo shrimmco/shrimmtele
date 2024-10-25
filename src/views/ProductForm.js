@@ -54,7 +54,7 @@ function ProductForm() {
     //   } 
   }, [formValues])
   const printLabel = async () => {
-    const { name, price, weight, hsn, diamond_weight, kt } = formValues;
+    const { name, price, weight, hsn, diamond_weight, kt,sihi } = formValues;
 
     // Check required fields
     if (name === '' || price === '' || weight === '' || hsn === '') {
@@ -138,7 +138,7 @@ function ProductForm() {
         let nwt = weight - diamond_weight * 0.200
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 20, size: 5, color, font: boldFont });
         page.drawText(`N.wt:${nwt.toFixed(3)}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
-        page.drawText(`Dia.wt:${diamond_weight} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
+        page.drawText(`Dia.wt:${diamond_weight}ct ${sihi.toUpperCase()} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
       else {
         page.drawText(`${formValues.collection_name.charAt(0).toUpperCase() + formValues.collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
@@ -523,7 +523,7 @@ function ProductForm() {
                       <label>Sihi</label>
                       <Input
                         placeholder="Enter Sihi"
-                        type="number"
+                        type="text"
                         name="sihi"
                         value={formValues.sihi}
                         onChange={handleChange}
