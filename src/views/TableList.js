@@ -39,10 +39,11 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [pdata, setPdata] = useState([]);
   const [productToDelete, setProductToDelete] = useState(null);
   const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [totalCounterPrice, setTotalCounterPrice] = useState(0); 
+  const [totalCounterPrice, setTotalCounterPrice] = useState(0);
   const [descriptionModal, setDescriptionModal] = useState({ isOpen: false, product: null }); // New state for description modal
   const [quillContent, setQuillContent] = useState(''); // State for Quill.js content
   const iframeRef = useRef(null);
@@ -51,45 +52,50 @@ const ProductList = () => {
   };
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, searchTerm]);
+  }, [searchTerm]);
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedProducts = pdata.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    setProducts(paginatedProducts);
+  }, [currentPage]);
 
-// Handle opening and closing description modal
-const openDescriptionModal = (product) => {
-  setQuillContent(product.description || ''); // Set existing description or empty
-  setDescriptionModal({ isOpen: true, product });
-};
+  // Handle opening and closing description modal
+  const openDescriptionModal = (product) => {
+    setQuillContent(product.description || ''); // Set existing description or empty
+    setDescriptionModal({ isOpen: true, product });
+  };
 
-const closeDescriptionModal = () => {
-  setDescriptionModal({ isOpen: false, product: null });
-};
+  const closeDescriptionModal = () => {
+    setDescriptionModal({ isOpen: false, product: null });
+  };
 
-// Function to save the description
-const saveDescription = async () => {
-  try {
-    const { error } = await supabase
-      .from('products')
-      .update({ description: quillContent }) // Update the description field
-      .eq('id', descriptionModal.product.id);
+  // Function to save the description
+  const saveDescription = async () => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ description: quillContent }) // Update the description field
+        .eq('id', descriptionModal.product.id);
 
-    if (error) {
-      throw new Error('Error updating description: ' + error.message);
+      if (error) {
+        throw new Error('Error updating description: ' + error.message);
+      }
+
+      toast.success('Description updated successfully!');
+      fetchProducts(); // Refresh the products list after updating
+      closeDescriptionModal(); // Close the modal
+    } catch (error) {
+      console.error('Error updating description:', error.message);
+      toast.error('Error updating description: ' + error.message);
     }
-
-    toast.success('Description updated successfully!');
-    fetchProducts(); // Refresh the products list after updating
-    closeDescriptionModal(); // Close the modal
-  } catch (error) {
-    console.error('Error updating description:', error.message);
-    toast.error('Error updating description: ' + error.message);
-  }
-};
+  };
 
 
 
-  const printLabel = async ({name, price, weight, hsn,collection_name,diamond_weight, sihi,kt,size}) => {
+  const printLabel = async ({ name, price, weight, hsn, collection_name, diamond_weight, sihi, kt, size }) => {
 
     // Check required fields
-   
+
 
     try {
       // Fetch the PDF from Supabase
@@ -170,10 +176,10 @@ const saveDescription = async () => {
         page.drawText(`Dia.wt:${diamond_weight}ct ${sihi.toUpperCase()} ${kt}kt`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
       else {
-        page.drawText(`${collection_name.charAt(0).toUpperCase()+ collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
+        page.drawText(`${collection_name.charAt(0).toUpperCase() + collection_name.slice(1)}`, { x: 4, y: 20, size: 5, color, font: boldFont });
         page.drawText(`G.wt:${weight}g`, { x: 4, y: 16, size: 5, color, font: boldFont });
-        if (size!=="universal"){
-          page.drawText(`${size}`, { x:  70 - getTextWidth(`#${size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
+        if (size !== "universal") {
+          page.drawText(`${size}`, { x: 70 - getTextWidth(`#${size}`, 6, 0.6), y: 24, size: 6, color, font: boldFont });
 
         }
         else {
@@ -181,7 +187,7 @@ const saveDescription = async () => {
 
         }
 
-        page.drawText(`N.wt:${weight}g `+`Pt:${"92.50"}`, { x: 4, y: 12, size: 5, color, font: boldFont });
+        page.drawText(`N.wt:${weight}g ` + `Pt:${"92.50"}`, { x: 4, y: 12, size: 5, color, font: boldFont });
       }
 
       // Save the modified PDF
@@ -206,12 +212,12 @@ const saveDescription = async () => {
   };
 
   const fetchProducts = async () => {
+
     try {
       let query = supabase
         .from('products')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('hsn', { ascending: true }); // Ordering by HSN
-
       if (searchTerm) {
         query = query.or(
           `name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,collection_name.ilike.%${searchTerm}%,hsn.ilike.%${searchTerm}%`
@@ -223,9 +229,12 @@ const saveDescription = async () => {
         console.error('Error fetching products:', error.message);
         return;
       }
-
+      setPdata(data)
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const paginatedProducts = data.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      console.log(paginatedProducts)
+      console.log(data)
+
 
       // Calculate total price of products selected for the counter
       const totalPrice = data
@@ -272,7 +281,7 @@ const saveDescription = async () => {
         .from('products')
         .update({ slct_for_counter: updatedValue })
         .eq('id', product.id);
-      
+
       if (error) {
         console.error('Error updating product:', error.message);
         return;
@@ -357,13 +366,13 @@ const saveDescription = async () => {
                   <IconButton
                     color="success"
                     onClick={() => {
-                     printLabel(product)
+                      printLabel(product)
                     }}
                   >
                     <LabelIcon />
                   </IconButton>
                   <IconButton onClick={() => openDescriptionModal(product)}>
-                    <LabelIcon /> 
+                    <LabelIcon />
                   </IconButton>
                 </TableCell>
                 <TableCell align="center">
@@ -375,7 +384,7 @@ const saveDescription = async () => {
                     )}
                   </IconButton>
                 </TableCell>
-                
+
               </TableRow>
             ))}
           </TableBody>
@@ -383,7 +392,7 @@ const saveDescription = async () => {
       </TableContainer>
 
       {/* Pagination */}
-      {!searchTerm && (
+      {(
         <Pagination
           count={totalPages}
           page={currentPage}
@@ -407,12 +416,12 @@ const saveDescription = async () => {
       <div style={{ marginTop: '20px', fontWeight: 'bold', color: 'white' }}>
         Total Price of Selected Products for Counter: ₹{totalCounterPrice}/-
       </div>
-  {/* Quill.js Description Modal */}
-  <Modal isOpen={descriptionModal.isOpen} toggle={closeDescriptionModal}>
+      {/* Quill.js Description Modal */}
+      <Modal isOpen={descriptionModal.isOpen} toggle={closeDescriptionModal}>
         <ModalHeader toggle={closeDescriptionModal}>
           Edit Description for {descriptionModal.product?.name}
         </ModalHeader>
-        <ModalBody style={{height:"400px"}}>
+        <ModalBody style={{ height: "400px" }}>
           <ReactQuill
             value={quillContent}
             onChange={setQuillContent}
